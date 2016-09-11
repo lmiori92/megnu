@@ -27,9 +27,11 @@
  */
 
 
-#include "display.h"    /* display primitives */
 #include "menu.h"       /* menu definitions */
-#include "lib.h"        /* utilities */
+
+/* External libraries */
+#include "../deasplay/deasplay.h"    /* display primitives */
+#include "../lorenzlib/lib.h"        /* utilities */
 
 static char* BOOL_LABELS[2] = { "NO", "YES" };
 static uint8_t BOOL_VALUES[2] = { (uint8_t)false, (uint8_t)true };
