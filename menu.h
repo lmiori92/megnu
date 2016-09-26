@@ -31,9 +31,12 @@
 
 #include <stdint.h>
 
+<<<<<<< HEAD
 /* Add extra parenthesis, you never know what the mean programmer is able to do :-) */
 #define MEGNU_MAX_PAGE_ENTRIES_INTERNAL     (MEGNU_MAX_PAGE_ENTRIES)
 
+=======
+>>>>>>> 6a81c6ec8d587e3005a3bc3852deda94968ef53b
 /** Enumeration of supported events the menu system can handle (input) */
 typedef enum
 {
@@ -54,7 +57,11 @@ typedef enum _e_menu_output_event
     MENU_EVENT_OUTPUT_EXTRA_EDIT,   /**< item extra value has been changed */
     MENU_EVENT_OUTPUT_SELECT,       /**< item is now selected */
     MENU_EVENT_OUTPUT_DESELECT,     /**< item is not selected anymore */
+<<<<<<< HEAD
     MENU_EVENT_OUTPUT_GOTO          /**< "goto" item has been clicked */
+=======
+    MENU_EVENT_OUTPUT_BACK     /**< "back" item has been clicked */
+>>>>>>> 6a81c6ec8d587e3005a3bc3852deda94968ef53b
 } e_menu_output_event;
 
 /** Enumeration of supported menu item types */
@@ -65,7 +72,11 @@ typedef enum
     MENU_TYPE_NUMERIC_8,       /**<  */
     MENU_TYPE_NUMERIC_16,      /**<  */
     MENU_TYPE_NUMERIC_32,      /**<  */
+<<<<<<< HEAD
     MENU_TYPE_GOTO,            /**< Menu item to get to another page */
+=======
+    MENU_TYPE_BACK             /**< Menu item to get to the previous page */
+>>>>>>> 6a81c6ec8d587e3005a3bc3852deda94968ef53b
 } e_item_type;
 
 /** Enumeration of the possible states a menu item can be */
@@ -104,12 +115,15 @@ typedef struct
 /** Event callback function */
 typedef void (*t_menu_cb)(e_menu_output_event event, uint8_t index, uint8_t page);
 
+<<<<<<< HEAD
 /** EXTERNAL LINKAGE GLOBALS **/
 
 /** Definition of the page entries, which are freely settable by the application */
 //extern t_menu_item g_megnu_page_entries[];
 //extern uint8_t     g_megnu_page_entries_max;
 
+=======
+>>>>>>> 6a81c6ec8d587e3005a3bc3852deda94968ef53b
 /**  EXTERNAL LINKAGE FUNCTIONS **/
 
 void menu_init(t_menu_state *state);

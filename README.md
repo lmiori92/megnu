@@ -23,3 +23,8 @@ The library is part of an ongoing project; therefore its APIs and code is subjec
 
 # MISRA
 The code should (almost) follow MISRA rules with some exeptions. Please be aware that I did NOT run an analyzer tool yet, hence there is no guarantee the code actually is. The fact is the code has been compiled without warnings nor strange behavior on a 64-bit Linux machine
+
+# Dependencies
+
+- [deasplay](https://github.com/lmiori92/deasplay)
+- [lorenzlib](https://github.com/lmiori92/lorenzlib)
