@@ -32,42 +32,31 @@
 #include "../deasplay/deasplay.h"    /* display primitives */
 #include "../lorenzlib/lib.h"        /* utilities */
 
-static char* BOOL_LABELS[2] = { "NO", "YES" };
-static uint8_t BOOL_VALUES[2] = { (uint8_t)false, (uint8_t)true };
+//static char* BOOL_LABELS[2] = { "NO", "YES" };
+//static uint8_t BOOL_VALUES[2] = { (uint8_t)false, (uint8_t)true };
 
 /** Static declarations **/
 static void menu_extra_display(void *extra, e_item_type type);
-static void menu_index_edit(t_menu_state *state, uint8_t count, bool increment);
+static void menu_index_edit(bool increment);
 static void menu_extra_edit(t_menu_item *item, bool increment);
 
 /* State */
-static t_menu_state *g_state;
-static t_menu_item  *g_item;
-static uint8_t       g_count;
-static uint8_t       g_page;
-static t_menu_cb     g_menu_event_cb;
+static t_menu_state g_state;
 
-void menu_init_bool_list(t_menu_extra_list *extra)
+void menu_init(void)
 {
-    extra->count = 2U;
-    extra->labels = BOOL_LABELS;
-    extra->values = BOOL_VALUES;
+    g_state.diff = 1;
+    g_state.page = 0;
+
+    menu_clear();
 }
 
-void menu_init(t_menu_state *state)
+void menu_clear(void)
 {
-    if (g_state != NULL)
-    {
-        state->state = MENU_NOT_SELECTED;
-        state->index = 0U;
-        state->prev = 1U;
-        state->diff = 1U;
-    }
-}
-
-void menu_event_callback(t_menu_cb menu_cb)
-{
-    g_menu_event_cb = menu_cb;
+    g_state.index = 0;
+    g_state.prev = 0;
+    g_state.state = MENU_NOT_SELECTED;
+    g_state.item_count = 0;
 }
 
 static void menu_extra_display(void *extra, e_item_type type)
@@ -84,23 +73,27 @@ static void menu_extra_display(void *extra, e_item_type type)
         switch(type)
         {
             case MENU_TYPE_LIST:
+            case MENU_TYPE_LIST_EDIT:
                 /* 8-bit array index */
                 /* display the "enum-like" element */
                 ext_ptr_tmp = (t_menu_extra_list*)extra;
-                u8_tmp = ext_ptr_tmp->ptr;
+                u8_tmp = (*((uint8_t*)ext_ptr_tmp->ptr));
                 display_write_string(ext_ptr_tmp->labels[u8_tmp]);
                 break;
             case MENU_TYPE_NUMERIC_8:
+            case MENU_TYPE_NUMERIC_8_EDIT:
                 /* 8-bit number */
                 u8_tmp = (*((uint8_t*)extra));
                 display_write_number((uint16_t)u8_tmp, false);
                 break;
             case MENU_TYPE_NUMERIC_16:
+            case MENU_TYPE_NUMERIC_16_EDIT:
                 /* 16-bit number */
                 u16_tmp = (*((uint16_t*)extra));
                 display_write_number(u16_tmp, false);
                 break;
             case MENU_TYPE_NUMERIC_32:
+            case MENU_TYPE_NUMERIC_32_EDIT:
                 /* 16-bit number */
                 u32_tmp = (*((uint32_t*)extra));
                 display_write_number(u32_tmp, false);
@@ -112,26 +105,26 @@ static void menu_extra_display(void *extra, e_item_type type)
     }
 }
 
-static void menu_index_edit(t_menu_state *state, uint8_t count, bool increment)
+static void menu_index_edit(bool increment)
 {
-    if (count > 0)
+    if (g_state.item_count > 0)
     {
         if (increment == true)
         {
             /* increment - "menu down" */
-            if (state->index < (count - 1U))
+            if (g_state.index < (g_state.item_count - 1U))
             {
-                state->prev = state->index;
-                state->index++;                    /* increment value */
+                g_state.prev = g_state.index;
+                g_state.index++;                    /* increment value */
             }
         }
         else
         {
             /* decrement - "menu up" */
-            if (state->index > 0U)
+            if (g_state.index > 0U)
             {
-                state->prev = state->index;
-                state->index--;                    /* increment value */
+                g_state.prev = g_state.index;
+                g_state.index--;                    /* increment value */
             }
         }
     }
@@ -147,32 +140,32 @@ static void menu_extra_edit(t_menu_item *item, bool increment)
         /* dereference and operate the pointer based on the defined type */
         switch(item->type)
         {
-            case MENU_TYPE_LIST:
+            case MENU_TYPE_LIST_EDIT:
                 /* 8-bit number for indexing the type "list" */
                 tmp_extra = (t_menu_extra_list*)item->extra;
                 if (increment == true)
                 {
-                    if (tmp_extra->ptr < (tmp_extra->count - 1))
-                        tmp_extra->ptr++;
+                    if (*((uint8_t*)tmp_extra->ptr) < (tmp_extra->count - 1))
+                        (*((uint8_t*)tmp_extra->ptr))++;
                 }
                 else
                 {
-                    if (tmp_extra->ptr > 0U)
-                        tmp_extra->ptr--;
+                    if ((*((uint8_t*)tmp_extra->ptr)) > 0U)
+                        (*((uint8_t*)tmp_extra->ptr))--;
                 }
                 break;
-            case MENU_TYPE_NUMERIC_8:
+            case MENU_TYPE_NUMERIC_8_EDIT:
                 /* 8-bit number */
                 tmp = (uint16_t)(*((uint8_t*)item->extra));
-                if (increment == true) lib_sum(&tmp, UINT8_MAX, g_state->diff);
-                else lib_diff(&tmp, g_state->diff);
+                if (increment == true) lib_sum(&tmp, UINT8_MAX, g_state.diff);
+                else lib_diff(&tmp, g_state.diff);
                 *((uint8_t*)item->extra) = (uint8_t)tmp;
                 break;
-            case MENU_TYPE_NUMERIC_16:
+            case MENU_TYPE_NUMERIC_16_EDIT:
                 /* 16-bit number */
                 tmp = (*((uint16_t*)item->extra));
-                if (increment == true) lib_sum(&tmp, UINT16_MAX, g_state->diff);
-                else lib_diff(&tmp, g_state->diff);
+                if (increment == true) lib_sum(&tmp, UINT16_MAX, g_state.diff);
+                else lib_diff(&tmp, g_state.diff);
                 *((uint16_t*)item->extra) = tmp;
                 break;
             default:
@@ -192,16 +185,15 @@ void menu_display(void)
     uint8_t id1;
     uint8_t id2;
 
-    if ((g_state == NULL ) || (g_item == NULL))
-    {
-    	/* No menu page is selected */
-    	return;
-    }
-
     display_clean();
 
+    if (g_state.item_count == 0U)
+    {
+        return;
+    }
+
     /* selected item arrow display */
-    if (g_state->index > g_state->prev)
+    if (g_state.index > g_state.prev)
     {
         /* "down" */
         display_set_cursor(1, 0);
@@ -214,32 +206,49 @@ void menu_display(void)
 
     display_write_char(0x7EU);
 
-    id1 = g_state->prev > g_state->index ? g_state->index : g_state->prev;
-    id2 = g_state->prev > g_state->index ? g_state->prev : g_state->index;
-
+#if MEGNU_DISPLAY_LINES != 1U
+    id1 = g_state.prev > g_state.index ? g_state.index : g_state.prev;
+    id2 = g_state.prev > g_state.index ? g_state.prev : g_state.index;
+#else
+    id1 = g_state.index;
+#endif
     /* display labels and extra data */
     /* for faster execution time, work with the pointer of the items */
 
     display_set_cursor(0U, 1U);                                       /* cursor right after the (possible) arrow */
-    display_write_string((g_item + id1)->label);         /* label */
+    display_write_string(g_state.items[id1].label);         /* label */
     display_advance_cursor(1U);
 
     /* [ or space */
-    display_write_char(((id1 == g_state->index) && (g_state->state == MENU_SELECTED)) ? '[' : ' ');
-    menu_extra_display((g_item + id1)->extra, (g_item + id1)->type);
+    display_write_char(((id1 == g_state.index) && (g_state.state == MENU_SELECTED)) ? '[' : ' ');
+    menu_extra_display(g_state.items[id1].extra, g_state.items[id1].type);
     /* ] or space */
-    display_write_char(((id1 == g_state->index) && (g_state->state == MENU_SELECTED)) ? ']' : ' ');
+    display_write_char(((id1 == g_state.index) && (g_state.state == MENU_SELECTED)) ? ']' : ' ');
 
+#if MEGNU_DISPLAY_LINES != 1U
     display_set_cursor(1U, 1U);                                       /* cursor right after the (possible) arrow */
     display_write_string((g_item + id2)->label);    /* label */
     display_advance_cursor(1U);
 
     /* [ or space */
-    display_write_char(((id2 == g_state->index) && (g_state->state == MENU_SELECTED)) ? '[' : ' ');
+    display_write_char(((id2 == g_state.index) && (g_state.state == MENU_SELECTED)) ? '[' : ' ');
     menu_extra_display((g_item + id2)->extra, (g_item + id2)->type);
     /* ] or space */
-    display_write_char(((id2 == g_state->index) && (g_state->state == MENU_SELECTED)) ? ']' : ' ');
+    display_write_char(((id2 == g_state.index) && (g_state.state == MENU_SELECTED)) ? ']' : ' ');
+#endif
+}
 
+static inline bool menu_is_editable(e_item_type type)
+{
+    if ((type == MENU_TYPE_NUMERIC_8_EDIT) || (type == MENU_TYPE_NUMERIC_16_EDIT) ||
+        (type == MENU_TYPE_NUMERIC_32_EDIT) || (type == MENU_TYPE_LIST_EDIT))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 e_menu_output_event menu_event(e_menu_input_event event)
@@ -247,15 +256,16 @@ e_menu_output_event menu_event(e_menu_input_event event)
 
     t_menu_item *item;
     e_menu_output_event output_event = MENU_EVENT_OUTPUT_NONE;
+    uint8_t info;
 
-    if ((g_state == NULL ) || (g_item == NULL))
+    if (g_state.item_count == 0U)
     {
     	/* No menu page is selected */
     }
     else
     {
 
-        item = g_item + g_state->index;
+        item = &g_state.items[g_state.index];
 
         switch(event)
         {
@@ -267,16 +277,16 @@ e_menu_output_event menu_event(e_menu_input_event event)
                 {
                     output_event = MENU_EVENT_OUTPUT_GOTO;
                 }
-                else if (item->extra != NULL)
+                else if (menu_is_editable(item->type) == true)
                 {
                     /* complex entry (editable) -> toggle selected / unselected */
-                    g_state->state = (g_state->state == MENU_SELECTED) ? MENU_NOT_SELECTED : MENU_SELECTED;
-                    output_event = (g_state->state == MENU_SELECTED) ? MENU_EVENT_OUTPUT_SELECT : MENU_EVENT_OUTPUT_DESELECT;
+                    g_state.state = (g_state.state == MENU_SELECTED) ? MENU_NOT_SELECTED : MENU_SELECTED;
+                    output_event = (g_state.state == MENU_SELECTED) ? MENU_EVENT_OUTPUT_SELECT : MENU_EVENT_OUTPUT_DESELECT;
                 }
                 else
                 {
                     /* if a simple entry, do nothing (probably changing menu anyhow) */
-                    g_state->state = MENU_NOT_SELECTED;
+                    g_state.state = MENU_NOT_SELECTED;
                     output_event = MENU_EVENT_OUTPUT_CLICK;
                 }
                 break;
@@ -285,26 +295,26 @@ e_menu_output_event menu_event(e_menu_input_event event)
                 output_event = MENU_EVENT_OUTPUT_CLICK_LONG;
                 break;
             case MENU_EVENT_LEFT:
-                if (g_state->state == MENU_SELECTED)
+                if (g_state.state == MENU_SELECTED)
                 {
                     menu_extra_edit(item, false);
                     output_event = MENU_EVENT_OUTPUT_EXTRA_EDIT;
                 }
                 else
                 {
-                    menu_index_edit(g_state, g_count, false);
+                    menu_index_edit(false);
                     output_event = MENU_EVENT_OUTPUT_INDEX_EDIT;
                 }
                 break;
             case MENU_EVENT_RIGHT:
-                if (g_state->state == MENU_SELECTED)
+                if (g_state.state == MENU_SELECTED)
                 {
                     menu_extra_edit(item, true);
                     output_event = MENU_EVENT_OUTPUT_EXTRA_EDIT;
                 }
                 else
                 {
-                    menu_index_edit(g_state, g_count, true);
+                    menu_index_edit(true);
                     output_event = MENU_EVENT_OUTPUT_INDEX_EDIT;
                 }
                 break;
@@ -314,28 +324,50 @@ e_menu_output_event menu_event(e_menu_input_event event)
         }
 
         /* Callback for the external world (if any) */
-        if ((output_event != MENU_EVENT_OUTPUT_NONE) && (g_menu_event_cb != NULL))
+        if (output_event != MENU_EVENT_OUTPUT_NONE)
         {
-            g_menu_event_cb(output_event, g_state->index, g_page);
+            if (output_event == MENU_EVENT_OUTPUT_GOTO)
+            {
+                /* additional info: new page number */
+                info = ((uint8_t)item->extra);
+            }
+            else
+            {
+                /* no additional info about the item event */
+                info = 0;
+            }
+
+            menu_event_callback(output_event, g_state.index, g_state.page, info);
         }
     }
 
     return output_event;
 }
 
-void menu_set(t_menu_state *state, t_menu_item *item, uint8_t count, uint8_t page)
+void menu_item_add(t_menu_item *item)
 {
-    g_state = state;
-    g_item  = item;
-    g_count = count;
-    g_page  = page;
+    if ((item != NULL) && (g_state.item_count < MEGNU_MAX_MENU_ITEMS))
+    {
+        memcpy(&g_state.items[g_state.item_count], item, sizeof(t_menu_item));
+        g_state.item_count++;
+    }
+    else
+    {
+        /* NULL pointer ! */
+    }
+}
 
-    /* init to a known state */
-    menu_init(state);
+void menu_set_page(uint8_t page)
+{
+    g_state.page = page;
+}
+
+uint8_t menu_get_page(void)
+{
+    return g_state.page;
 }
 
 void menu_set_diff(uint16_t diff)
 {
-    if (g_state != NULL)
-        g_state->diff = (diff == 0U) ? 1U : diff;
+    g_state.diff = (diff == 0U) ? 1U : diff;
 }
