@@ -32,8 +32,6 @@
 #include "../deasplay/deasplay.h"    /* display primitives */
 #include "../lorenzlib/lib.h"        /* utilities */
 
-#define MEGNU_DISPLAY_LINES     DEASPLAY_LINES//(4U)
-
 /** Static declarations **/
 static void menu_extra_display(void *extra, e_item_type type);
 static void menu_index_edit(bool increment);
@@ -42,10 +40,11 @@ static void menu_extra_edit(t_menu_item *item, bool increment);
 /* State */
 static t_menu_state g_state;
 
-void menu_init(void)
+void menu_init(uint8_t lines)
 {
     g_state.diff = 1;
     g_state.page = 0;
+    g_state.lines = lines;
 
     menu_clear();
 }
@@ -114,7 +113,7 @@ static void menu_index_edit(bool increment)
             if (g_state.index < (g_state.item_count - 1U))
             {
                 g_state.index++;                    /* increment value */
-                if (g_state.index - g_state.start >= MEGNU_DISPLAY_LINES)
+                if (g_state.index - g_state.start >= g_state.lines)
                 {
                     g_state.start = g_state.index;
                 }
@@ -193,7 +192,7 @@ void menu_display(void)
 
     display_clean();
 
-    for (i = 0; i < MEGNU_DISPLAY_LINES; i++)
+    for (i = 0; i < g_state.lines; i++)
     {
         id = g_state.start+i;
         if (id < g_state.item_count)

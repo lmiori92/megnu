@@ -40,8 +40,7 @@ extern "C"
 /* Add extra parenthesis, you never know what the mean programmer is able to do :-) */
 #define MEGNU_MAX_PAGE_ENTRIES_INTERNAL     (MEGNU_MAX_PAGE_ENTRIES)
 
-//#define MEGNU_DISPLAY_LINES     (4U)
-
+/* Defnine the size of the internal buffer */
 #define MEGNU_MAX_MENU_ITEMS    (20U)
 
 /** Enumeration of supported events the menu system can handle (input) */
@@ -117,6 +116,7 @@ typedef struct
     t_menu_item         items[MEGNU_MAX_MENU_ITEMS];  /**< Menu items (i.e. elements) */
     uint8_t             item_count;    /**< Actual number of menu items */
     uint8_t             page;          /**< Selected page number */
+    uint8_t             lines;         /**< The total lines of numbers to display */
 } t_menu_state;
 
 /** Event callback function
@@ -130,16 +130,16 @@ extern void menu_event_callback(e_menu_output_event event, uint8_t index, uint8_
 
 /** EXTERNAL LINKAGE GLOBALS **/
 
-/** Definition of the page entries, which are freely settable by the application */
-//extern t_menu_item g_megnu_page_entries[];
-//extern uint8_t     g_megnu_page_entries_max;
+/* None so far */
 
 /**  EXTERNAL LINKAGE FUNCTIONS **/
 
 /**
  * Initialize the internal structures to a known state
+ * @param   lines   the number of physical lines of the destination display
+ *                  (or a subset of them)
  */
-void menu_init(void);
+void menu_init(uint8_t lines);
 
 /**
  * Removes all the item from the internal state i.e.
