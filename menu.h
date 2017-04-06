@@ -29,12 +29,18 @@
 #ifndef MENU_H_
 #define MENU_H_
 
+/* Let this library to be also compilable in C++ projects */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include <stdint.h>
 
 /* Add extra parenthesis, you never know what the mean programmer is able to do :-) */
 #define MEGNU_MAX_PAGE_ENTRIES_INTERNAL     (MEGNU_MAX_PAGE_ENTRIES)
 
-#define MEGNU_DISPLAY_LINES     (1U)
+//#define MEGNU_DISPLAY_LINES     (4U)
 
 #define MEGNU_MAX_MENU_ITEMS    (20U)
 
@@ -105,7 +111,7 @@ typedef struct
 typedef struct
 {
     uint8_t             index;       /**< Selected menu item */
-    uint8_t             prev;        /**< Selected menu item */
+    uint8_t             start;        /**< Selected menu item */
     e_menu_item_state   state;       /**< Item state */
     uint16_t            diff;        /**< Determines scrolling "speed" / "velocity" (e.g. from an encoder or repeated keypress) */
     t_menu_item         items[MEGNU_MAX_MENU_ITEMS];  /**< Menu items (i.e. elements) */
@@ -162,5 +168,9 @@ uint8_t menu_get_page(void);
 void menu_set_diff(uint16_t diff);
 void menu_display(void);
 e_menu_output_event menu_event(e_menu_input_event event);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MENU_H_ */

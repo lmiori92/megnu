@@ -32,8 +32,7 @@
 #include "../deasplay/deasplay.h"    /* display primitives */
 #include "../lorenzlib/lib.h"        /* utilities */
 
-//static char* BOOL_LABELS[2] = { "NO", "YES" };
-//static uint8_t BOOL_VALUES[2] = { (uint8_t)false, (uint8_t)true };
+#define MEGNU_DISPLAY_LINES     DEASPLAY_LINES//(4U)
 
 /** Static declarations **/
 static void menu_extra_display(void *extra, e_item_type type);
@@ -54,7 +53,7 @@ void menu_init(void)
 void menu_clear(void)
 {
     g_state.index = 0;
-    g_state.prev = 0;
+    g_state.start = 0;
     g_state.state = MENU_NOT_SELECTED;
     g_state.item_count = 0;
 }
@@ -114,8 +113,11 @@ static void menu_index_edit(bool increment)
             /* increment - "menu down" */
             if (g_state.index < (g_state.item_count - 1U))
             {
-                g_state.prev = g_state.index;
                 g_state.index++;                    /* increment value */
+                if (g_state.index - g_state.start >= MEGNU_DISPLAY_LINES)
+                {
+                    g_state.start = g_state.index;
+                }
             }
         }
         else
@@ -123,8 +125,11 @@ static void menu_index_edit(bool increment)
             /* decrement - "menu up" */
             if (g_state.index > 0U)
             {
-                g_state.prev = g_state.index;
                 g_state.index--;                    /* increment value */
+                if (g_state.index < g_state.start)
+                {
+                    g_state.start = g_state.index;
+                }
             }
         }
     }
@@ -182,60 +187,33 @@ and possibly extra data like ON-OFF labels or numeric values.
 void menu_display(void)
 {
 
-    uint8_t id1;
-    uint8_t id2;
+    bool selected;
+    uint8_t i = 0;
+    uint8_t id = 0;
 
     display_clean();
 
-    if (g_state.item_count == 0U)
+    for (i = 0; i < MEGNU_DISPLAY_LINES; i++)
     {
-        return;
+        id = g_state.start+i;
+        if (id < g_state.item_count)
+        {
+            selected = (id == g_state.index);
+            /* write menu entries on the display */
+            display_set_cursor(i, 0U);
+            display_write_char(selected ? '-' : ' ');
+            display_write_string(g_state.items[id].label);         /* label */
+            display_advance_cursor(1U);
+            /* [ or space */
+            display_write_char(((selected) && (g_state.state == MENU_SELECTED)) ? '[' : ' ');
+            menu_extra_display(g_state.items[id].extra, g_state.items[id].type);
+            /* ] or space */
+            display_write_char(((selected) && (g_state.state == MENU_SELECTED)) ? ']' : ' ');
+        }
     }
 
-    /* selected item arrow display */
-    if (g_state.index > g_state.prev)
-    {
-        /* "down" */
-        display_set_cursor(1, 0);
-    }
-    else
-    {
-        /* "up" */
-        display_set_cursor(0, 0);
-    }
-
-    display_write_char(0x7EU);
-
-#if MEGNU_DISPLAY_LINES != 1U
-    id1 = g_state.prev > g_state.index ? g_state.index : g_state.prev;
-    id2 = g_state.prev > g_state.index ? g_state.prev : g_state.index;
-#else
-    id1 = g_state.index;
-#endif
-    /* display labels and extra data */
-    /* for faster execution time, work with the pointer of the items */
-
-    display_set_cursor(0U, 1U);                                       /* cursor right after the (possible) arrow */
-    display_write_string(g_state.items[id1].label);         /* label */
-    display_advance_cursor(1U);
-
-    /* [ or space */
-    display_write_char(((id1 == g_state.index) && (g_state.state == MENU_SELECTED)) ? '[' : ' ');
-    menu_extra_display(g_state.items[id1].extra, g_state.items[id1].type);
-    /* ] or space */
-    display_write_char(((id1 == g_state.index) && (g_state.state == MENU_SELECTED)) ? ']' : ' ');
-
-#if MEGNU_DISPLAY_LINES != 1U
-    display_set_cursor(1U, 1U);                                       /* cursor right after the (possible) arrow */
-    display_write_string((g_item + id2)->label);    /* label */
-    display_advance_cursor(1U);
-
-    /* [ or space */
-    display_write_char(((id2 == g_state.index) && (g_state.state == MENU_SELECTED)) ? '[' : ' ');
-    menu_extra_display((g_item + id2)->extra, (g_item + id2)->type);
-    /* ] or space */
-    display_write_char(((id2 == g_state.index) && (g_state.state == MENU_SELECTED)) ? ']' : ' ');
-#endif
+//    /* selected item arrow display */
+//    display_write_char(0x7EU);
 }
 
 static inline bool menu_is_editable(e_item_type type)
@@ -329,7 +307,7 @@ e_menu_output_event menu_event(e_menu_input_event event)
             if (output_event == MENU_EVENT_OUTPUT_GOTO)
             {
                 /* additional info: new page number */
-                info = ((uint8_t)item->extra);
+                info = ((uint8_t)(item->extra));
             }
             else
             {
