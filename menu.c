@@ -96,6 +96,9 @@ static void menu_extra_display(void *extra, e_item_type type)
                 u32_tmp = (*((uint32_t*)extra));
                 display_write_number(u32_tmp, false);
                 break;
+            case MENU_TYPE_STRING:
+                display_write_string((char*)extra);
+                break;
             default:
                 /* not implemented */
                 break;
@@ -332,6 +335,14 @@ void menu_item_add(t_menu_item *item)
     {
         /* NULL pointer ! */
     }
+}
+
+t_menu_item* menu_item_at(uint8_t index)
+{
+    if (index < MEGNU_MAX_MENU_ITEMS)
+        return &g_state.items[index];
+    else
+        return NULL;
 }
 
 void menu_set_page(uint8_t page)
