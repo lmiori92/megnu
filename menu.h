@@ -78,7 +78,7 @@ typedef enum
     MENU_TYPE_NUMERIC_8_EDIT,    /**<  */
     MENU_TYPE_NUMERIC_16_EDIT,   /**<  */
     MENU_TYPE_NUMERIC_32_EDIT,   /**<  */
-    MENU_TYPE_CALLBACK,          /**< Menu item that is bound to the return value of a given function */
+    MENU_TYPE_CALLBACK,          /**< Menu item invokes a function when clicked */
     MENU_TYPE_GOTO,              /**< Menu item to get to another page */
 } e_item_type;
 
@@ -116,8 +116,12 @@ typedef struct
     t_menu_item         items[MEGNU_MAX_MENU_ITEMS];  /**< Menu items (i.e. elements) */
     uint8_t             item_count;    /**< Actual number of menu items */
     uint8_t             page;          /**< Selected page number */
+    uint8_t             page_previous; /**< Previously selected page number */
     uint8_t             lines;         /**< The total lines of numbers to display */
 } t_menu_state;
+
+/** The callback function for a menu entry of type MENU_TYPE_CALLBACK */
+typedef void (*menu_item_cb)(void);
 
 /** Event callback function
  *
@@ -164,6 +168,12 @@ void menu_set_page(uint8_t page);
  * @return  the page value
  */
 uint8_t menu_get_page(void);
+
+/**
+ * Return the previously selected page value
+ * @return  the previously selected page value
+ */
+uint8_t menu_get_previous_page(void);
 
 void menu_set_diff(uint16_t diff);
 void menu_display(void);

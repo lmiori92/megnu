@@ -44,6 +44,7 @@ void menu_init(uint8_t lines)
 {
     g_state.diff = 1;
     g_state.page = 0;
+    g_state.page_previous = 0;
     g_state.lines = lines;
 
     menu_clear();
@@ -248,11 +249,17 @@ e_menu_output_event menu_event(e_menu_input_event event)
         {
             case MENU_EVENT_NONE:
                 /* no event; NOOP */
+                output_event = MENU_EVENT_OUTPUT_NONE;
                 break;
             case MENU_EVENT_CLICK:
                 if (item->type == MENU_TYPE_GOTO)
                 {
                     output_event = MENU_EVENT_OUTPUT_GOTO;
+                }
+                else if (item->type == MENU_TYPE_CALLBACK)
+                {
+                    ((menu_item_cb)item->extra)();      /* invoke the callback */
+                    output_event = MENU_TYPE_CALLBACK;
                 }
                 else if (menu_is_editable(item->type) == true)
                 {
@@ -336,12 +343,18 @@ void menu_item_add(t_menu_item *item)
 
 void menu_set_page(uint8_t page)
 {
+    g_state.page_previous = g_state.page;
     g_state.page = page;
 }
 
 uint8_t menu_get_page(void)
 {
     return g_state.page;
+}
+
+uint8_t menu_get_previous_page(void)
+{
+    return g_state.page_previous;
 }
 
 void menu_set_diff(uint16_t diff)
