@@ -78,7 +78,8 @@ typedef enum
     MENU_TYPE_NUMERIC_8_EDIT,    /**<  */
     MENU_TYPE_NUMERIC_16_EDIT,   /**<  */
     MENU_TYPE_NUMERIC_32_EDIT,   /**<  */
-    MENU_TYPE_CALLBACK,          /**< Menu item invokes a function when clicked */
+    MENU_TYPE_STRING,            /**< Menu item that is representing a C string given as argument */
+    MENU_TYPE_CALLBACK,          /**< Menu item that is bound to the return value of a given function */
     MENU_TYPE_GOTO,              /**< Menu item to get to another page */
 } e_item_type;
 
@@ -156,6 +157,14 @@ void menu_clear(void);
  * @param item
  */
 void menu_item_add(t_menu_item *item);
+
+/**
+ * Get a reference to a given menu item at the given index.
+ * This is useful to implement self-modifying items.
+ * @param index the index of the menu item
+ * @return  a writable pointer to the menu item
+ */
+t_menu_item* menu_item_at(uint8_t index);
 
 /**
  * Set a new page number
